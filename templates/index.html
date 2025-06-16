@@ -116,17 +116,6 @@
                 errorElement.textContent = error.error || 'An error occurred';
             });
         }
-        
-        function copyToClipboard() {
-            const shortUrl = document.getElementById('short-url').textContent;
-            navigator.clipboard.writeText(shortUrl).then(() => {
-                const copyBtn = document.getElementById('copy-btn');
-                copyBtn.textContent = 'Copied!';
-                setTimeout(() => {
-                    copyBtn.textContent = 'Copy';
-                }, 2000);
-            });
-        }
     </script>
 </body>
 </html>
