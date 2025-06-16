@@ -6,7 +6,7 @@ app = Flask(__name__)
 store = URLStore()
 
 # Configuração básica
-app.config['BASE_URL'] = os.environ.get('BASE_URL', 'http://localhost:5000')
+app.config['BASE_URL'] = os.environ.get('BASE_URL', 'https://urlshortener-sldd.onrender.com/')
 
 @app.route('/', methods=['GET'])
 def index():
