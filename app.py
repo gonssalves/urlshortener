@@ -1,46 +1,52 @@
 from flask import Flask, request, jsonify, redirect, render_template
-import hashlib
+from url_store import URLStore
+import os
 
 app = Flask(__name__)
-url_db = {}
+store = URLStore()
 
-def generate_short_code(url):
-    return hashlib.sha256(url.encode()).hexdigest()[:6]
+# Configuração básica
+app.config['BASE_URL'] = os.environ.get('BASE_URL', 'http://localhost:5000')
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    short_url = None
-    error = None
+@app.route('/', methods=['GET'])
+def index():
+    """Rota principal que serve o frontend"""
+    return render_template('index.html', base_url=app.config['BASE_URL'])
 
-    if request.method == 'POST':
-        long_url = request.form.get('url')
-        if not long_url:
-            error = "Campo de URL está vazio."
-        else:
-            short_code = generate_short_code(long_url)
-            url_db[short_code] = long_url
-            short_url = request.host_url + short_code  # <-- Aqui
+@app.route('/api/shorten', methods=['POST'])
+def shorten_url():
+    """API para encurtar URLs"""
+    data = request.get_json()
+    if not data or 'url' not in data:
+        return jsonify({'error': 'Missing URL parameter'}), 400
+    
+    long_url = data['url']
+    if not long_url.startswith(('http://', 'https://')):
+        return jsonify({'error': 'Invalid URL - must start with http:// or https://'}), 400
+    
+    key = store.add_url(long_url)
+    short_url = f"{app.config['BASE_URL']}/{key}"
+    
+    return jsonify({
+        'key': key,
+        'long_url': long_url,
+        'short_url': short_url
+    }), 201
 
-    # Geração dinâmica no histórico também
-    history = [
-        {'short_code': code, 'long_url': url, 'short_url': request.host_url + code}
-        for code, url in url_db.items()
-    ]
+@app.route('/<key>', methods=['GET'])
+def redirect_to_long_url(key):
+    """Redireciona para a URL original"""
+    long_url = store.get_url(key)
+    if long_url:
+        return redirect(long_url, code=302)
+    return jsonify({'error': 'URL not found'}), 404
 
-    return render_template('index.html', short_url=short_url, error=error, history=history)
-
-@app.route('/<short_code>', methods=['GET'])
-def redirect_short_url(short_code):
-    if short_code in url_db:
-        return redirect(url_db[short_code], code=302)
-    return "URL not found", 404
-
-@app.route('/delete/<short_code>', methods=['POST'])
-def delete_short_url(short_code):
-    if short_code in url_db:
-        del url_db[short_code]
-    return redirect('/')
-
+@app.route('/api/url/<key>', methods=['DELETE'])
+def delete_url(key):
+    """Remove uma URL encurtada"""
+    if store.delete_url(key):
+        return '', 200
+    return jsonify({'error': 'URL not found'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
