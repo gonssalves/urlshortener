@@ -1,56 +1,132 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Encurtador de Links</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
     <style>
-        body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 2em; }
-        input[type="text"] { width: 80%; padding: 0.5em; }
-        button { padding: 0.5em 1em; }
-        table { width: 100%; margin-top: 2em; border-collapse: collapse; }
-        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
-        .result { margin-top: 1em; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .short-url {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .short-url:hover {
+            text-decoration: underline;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <h1>Encurtador de Links</h1>
-
-    <form method="POST">
-        <input type="text" name="url" placeholder="Cole sua URL aqui..." required>
-        <button type="submit">Encurtar</button>
-    </form>
-
-    {% if short_url %}
-    <div class="result">
-        <strong>Link encurtado:</strong>
-        <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <div class="input-group">
+            <input type="text" id="url-input" placeholder="Enter your long URL here">
+            <button id="shorten-btn">Shorten</button>
+        </div>
+        <div id="error-message" class="error"></div>
+        
+        <div id="result" class="result" style="display: none;">
+            <h3>Shortened URL:</h3>
+            <a id="short-url" class="short-url" target="_blank"></a>
+            <button id="copy-btn" style="margin-left: 10px;">Copy</button>
+        </div>
     </div>
-    {% endif %}
 
-    {% if error %}
-    <p style="color:red;">{{ error }}</p>
-    {% endif %}
-
-    {% if history %}
-    <h2>Histórico</h2>
-    <table>
-        <tr>
-            <th>Original</th>
-            <th>Encurtado</th>
-            <th>Ações</th>
-        </tr>
-        {% for item in history %}
-        <tr>
-            <td><a href="{{ item.long_url }}" target="_blank">{{ item.long_url }}</a></td>
-            <td><a href="{{ item.short_url }}" target="_blank">{{ item.short_url }}</a></td>
-            <td>
-                <form method="POST" action="/delete/{{ item.short_code }}" style="display:inline;">
-                    <button type="submit">Apagar</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% endif %}
+    <script>
+        document.getElementById('shorten-btn').addEventListener('click', shortenUrl);
+        document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+        
+        function shortenUrl() {
+            const longUrl = document.getElementById('url-input').value.trim();
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = '';
+            
+            if (!longUrl) {
+                errorElement.textContent = 'Please enter a URL';
+                return;
+            }
+            
+            if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
+                errorElement.textContent = 'URL must start with http:// or https://';
+                return;
+            }
+            
+            fetch('/api/shorten', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: longUrl })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const resultElement = document.getElementById('result');
+                const shortUrlElement = document.getElementById('short-url');
+                
+                shortUrlElement.textContent = data.short_url;
+                shortUrlElement.href = data.short_url;
+                resultElement.style.display = 'block';
+            })
+            .catch(error => {
+                errorElement.textContent = error.error || 'An error occurred';
+            });
+        }
+        
+        function copyToClipboard() {
+            const shortUrl = document.getElementById('short-url').textContent;
+            navigator.clipboard.writeText(shortUrl).then(() => {
+                const copyBtn = document.getElementById('copy-btn');
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 </html>
