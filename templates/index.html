@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Encurtador de Links</title>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 2em; }
+        input[type="text"] { width: 80%; padding: 0.5em; }
+        button { padding: 0.5em 1em; }
+        table { width: 100%; margin-top: 2em; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
+        .result { margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h1>Encurtador de Links</h1>
+
+    <form method="POST">
+        <input type="text" name="url" placeholder="Cole sua URL aqui..." required>
+        <button type="submit">Encurtar</button>
+    </form>
+
+    {% if short_url %}
+    <div class="result">
+        <strong>Link encurtado:</strong>
+        <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    {% if history %}
+    <h2>Histórico</h2>
+    <table>
+        <tr>
+            <th>Original</th>
+            <th>Encurtado</th>
+            <th>Ações</th>
+        </tr>
+        {% for item in history %}
+        <tr>
+            <td><a href="{{ item.long_url }}" target="_blank">{{ item.long_url }}</a></td>
+            <td><a href="{{ item.short_url }}" target="_blank">{{ item.short_url }}</a></td>
+            <td>
+                <form method="POST" action="/delete/{{ item.short_code }}" style="display:inline;">
+                    <button type="submit">Apagar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>
