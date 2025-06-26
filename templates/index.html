@@ -1,95 +1,432 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Shortener</title>
+    <title>LinkShort - Encurtador de URLs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #f1f5f9;
+            --accent-color: #10b981;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --error-color: #ef4444;
+            --success-color: #22c55e;
+            --background: #ffffff;
+            --card-background: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
-        }
-        .container {
+            padding: 2rem;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            justify-content: center;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .main-card {
+            background: var(--card-background);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
         .input-group {
             display: flex;
-            gap: 10px;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
-        input[type="text"] {
+
+        .url-input {
             flex: 1;
-            padding: 10px;
-            font-size: 16px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            background: var(--background);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            font-family: inherit;
         }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .url-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
             border: none;
+            border-radius: 0.75rem;
             cursor: pointer;
-            font-size: 16px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
         }
-        button:hover {
-            background-color: #45a049;
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
         }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
-        .short-url {
-            color: #0066cc;
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-header i {
+            color: var(--success-color);
+            font-size: 1.2rem;
+        }
+
+        .result-header h3 {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .url-result {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .url-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .url-link {
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
+            word-break: break-all;
+            display: block;
         }
-        .short-url:hover {
+
+        .url-link:hover {
             text-decoration: underline;
         }
-        .error {
-            color: red;
-            margin-top: 10px;
+
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--error-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading .btn-primary {
+            background: var(--text-secondary);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .main-card {
+                padding: 1.5rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>URL Shortener</h1>
-        <div class="input-group">
-            <input type="text" id="url-input" placeholder="Enter your long URL here">
-            <button id="shorten-btn">Shorten</button>
+        <div class="header">
+            <h1>URLizinha</h1>
+            <p>Transforme URLs longas em links curtos</p>
         </div>
-        <div id="error-message" class="error"></div>
-        
-        <div id="result" class="result" style="display: none;">
-            <h3>Shortened URL:</h3>
-            <a id="short-url" class="short-url" target="_blank"></a>
-            <button id="copy-btn" style="margin-left: 10px;">Copy</button>
+
+        <div class="main-card">
+            <div class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="url-input" 
+                        class="url-input"
+                        placeholder="Cole sua URL aqui (ex: https://exemplo.com/pagina-muito-longa)"
+                        autocomplete="url"
+                    >
+                    <button id="shorten-btn" class="btn btn-primary">
+                        <i class="fas fa-magic"></i>
+                        Encurtar
+                    </button>
+                </div>
+                
+                <div id="error-message" class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="error-text"></span>
+                </div>
+            </div>
+
+            <div id="result-card" class="result-card">
+                <div class="result-header">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>URL encurtada com sucesso!</h3>
+                </div>
+                
+                <div class="url-result">
+                    <div class="url-label">URL Original:</div>
+                    <a id="original-url" class="url-link" target="_blank"></a>
+                </div>
+                
+                <div class="url-result">
+                    <div class="url-label">URL Encurtada:</div>
+                    <a id="short-url" class="url-link" target="_blank"></a>
+                </div>
+                
+                <div class="result-actions">
+                    <button id="copy-btn" class="btn btn-primary">
+                        <i class="fas fa-copy"></i>
+                        Copiar Link
+                    </button>
+                    <button id="new-url-btn" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i>
+                        Nova URL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="urls-created">0</span>
+                <div class="stat-label">URLs Criadas</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="chars-saved">0</span>
+                <div class="stat-label">Caracteres Economizados</div>
+            </div>
         </div>
     </div>
 
     <script>
-        document.getElementById('shorten-btn').addEventListener('click', shortenUrl);
-        document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+        // Estado da aplicação
+        let urlsCreated = parseInt(localStorage.getItem('urlsCreated') || '0');
+        let charsSaved = parseInt(localStorage.getItem('charsSaved') || '0');
         
+        // Elementos DOM
+        const urlInput = document.getElementById('url-input');
+        const shortenBtn = document.getElementById('shorten-btn');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resultCard = document.getElementById('result-card');
+        const originalUrl = document.getElementById('original-url');
+        const shortUrl = document.getElementById('short-url');
+        const copyBtn = document.getElementById('copy-btn');
+        const newUrlBtn = document.getElementById('new-url-btn');
+        const urlsCreatedEl = document.getElementById('urls-created');
+        const charsSavedEl = document.getElementById('chars-saved');
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            
+            // Event listeners
+            shortenBtn.addEventListener('click', shortenUrl);
+            copyBtn.addEventListener('click', copyToClipboard);
+            newUrlBtn.addEventListener('click', resetForm);
+            
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    shortenUrl();
+                }
+            });
+            
+            urlInput.addEventListener('input', function() {
+                hideError();
+            });
+        });
+
         function shortenUrl() {
-            const longUrl = document.getElementById('url-input').value.trim();
-            const errorElement = document.getElementById('error-message');
-            errorElement.textContent = '';
+            const longUrl = urlInput.value.trim();
             
             if (!longUrl) {
-                errorElement.textContent = 'Please enter a URL';
+                showError('Por favor, insira uma URL');
                 return;
             }
             
-            if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
-                errorElement.textContent = 'URL must start with http:// or https://';
+            if (!isValidUrl(longUrl)) {
+                showError('URL inválida. Certifique-se de incluir http:// ou https://');
                 return;
             }
+            
+            setLoading(true);
+            hideError();
             
             fetch('/api/shorten', {
                 method: 'POST',
@@ -105,16 +442,103 @@
                 return response.json();
             })
             .then(data => {
-                const resultElement = document.getElementById('result');
-                const shortUrlElement = document.getElementById('short-url');
-                
-                shortUrlElement.textContent = data.short_url;
-                shortUrlElement.href = data.short_url;
-                resultElement.style.display = 'block';
+                showResult(longUrl, data.short_url);
+                updateStatsAfterShorten(longUrl, data.short_url);
             })
             .catch(error => {
-                errorElement.textContent = error.error || 'An error occurred';
+                showError(error.error || 'Ocorreu um erro ao encurtar a URL');
+            })
+            .finally(() => {
+                setLoading(false);
             });
+        }
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return string.startsWith('http://') || string.startsWith('https://');
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showResult(original, shortened) {
+            originalUrl.textContent = original;
+            originalUrl.href = original;
+            shortUrl.textContent = shortened;
+            shortUrl.href = shortened;
+            
+            resultCard.classList.add('show');
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('show');
+        }
+
+        function setLoading(loading) {
+            document.body.classList.toggle('loading', loading);
+            shortenBtn.disabled = loading;
+            
+            if (loading) {
+                shortenBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Encurtando...';
+            } else {
+                shortenBtn.innerHTML = '<i class="fas fa-magic"></i> Encurtar';
+            }
+        }
+
+        function copyToClipboard() {
+            const shortUrlText = shortUrl.textContent;
+            navigator.clipboard.writeText(shortUrlText).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                copyBtn.style.background = 'var(--success-color)';
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.style.background = '';
+                }, 2000);
+            }).catch(() => {
+                // Fallback para navegadores mais antigos
+                const textArea = document.createElement('textarea');
+                textArea.value = shortUrlText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copiar Link';
+                }, 2000);
+            });
+        }
+
+        function resetForm() {
+            urlInput.value = '';
+            resultCard.classList.remove('show');
+            hideError();
+            urlInput.focus();
+        }
+
+        function updateStatsAfterShorten(original, shortened) {
+            urlsCreated++;
+            charsSaved += Math.max(0, original.length - shortened.length);
+            
+            localStorage.setItem('urlsCreated', urlsCreated.toString());
+            localStorage.setItem('charsSaved', charsSaved.toString());
+            
+            updateStats();
+        }
+
+        function updateStats() {
+            urlsCreatedEl.textContent = urlsCreated.toLocaleString();
+            charsSavedEl.textContent = charsSaved.toLocaleString();
         }
     </script>
 </body>
